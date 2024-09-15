@@ -7,31 +7,31 @@
     <style>
         body {
           display: flex;
-          flex-direction: column; /* Stack elements vertically */
-          justify-content: center; /* Center horizontally */
-          align-items: center; /* Center vertically */
-          height: 100vh; /* Full viewport height */
-          margin: 0; /* Remove default margin */
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
         }
 
         .feeder-button {
           display: flex;
-          align-items: center; /* Align text and timer vertically */
-          justify-content: center; /* Center text and timer horizontally */
-          width: 200px; /* Fixed width to prevent expansion */
-          height: 50px; /* Fixed height to prevent expansion */
+          align-items: center;
+          justify-content: center;
+          width: 200px;
+          height: 50px;
           padding: 10px;
           background-color: green;
           color: white;
           border: 2px solid black;
           cursor: pointer;
           text-align: center;
-          line-height: 30px; /* Center text vertically */
+          line-height: 30px;
           transition: background-color 0.3s ease;
-          user-select: none; /* Prevent text selection */
+          user-select: none;
           position: relative;
-          overflow: hidden; /* Ensure timer is visible without expanding button */
-          font-size: 1em; /* Adjust font size for readability */
+          overflow: hidden;
+          font-size: 1em;
         }
 
         .feeder-button:hover {
@@ -45,14 +45,14 @@
         .timer {
           color: white;
           font-weight: bold;
-          margin-left: 10px; /* Space between button text and timer */
-          font-size: 1em; /* Adjust font size */
+          margin-left: 10px;
+          font-size: 1em;
         }
 
         .control-buttons {
           display: flex;
-          gap: 20px; /* Space between buttons */
-          margin-top: 20px; /* Space above control buttons */
+          gap: 20px;
+          margin-top: 20px;
         }
 
         .control-button {
@@ -117,12 +117,12 @@
         updateTimer();
         updateFirestore();
       }, 100); // Update every 100 milliseconds
-      timerDisplay.style.display = 'block'; // Show timer display
+      timerDisplay.style.display = 'block';
     };
 
     const updateTimer = () => {
       const elapsedSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
-      lastTimerValue = elapsedSeconds; // Update the last timer value
+      lastTimerValue = elapsedSeconds;
       timerDisplay.textContent = formatTime(elapsedSeconds);
     };
 
@@ -130,7 +130,8 @@
       try {
         await setDoc(doc(db, 'feeder', 'button_status'), {
           button_color: feederButton.classList.contains('red') ? 'red' : 'green',
-          button_time: lastTimerValue // Store current time in seconds
+          button_time: lastTimerValue,
+          timestamp: Date.now() // Store current timestamp
         });
       } catch (error) {
         console.error("Error updating button status:", error);
@@ -139,17 +140,18 @@
 
     const resetTimer = () => {
       clearInterval(timerInterval);
-      timerDisplay.style.display = 'none'; // Hide timer display
+      timerDisplay.style.display = 'none';
       timerDisplay.textContent = '';
     };
 
-    const saveButtonStatus = async (color, startTime) => {
+    const saveButtonStatus = async (color, startTime, timestamp) => {
       try {
         await setDoc(doc(db, 'feeder', 'button_status'), {
           button_color: color,
-          button_time: startTime // Store time in seconds
+          button_time: startTime,
+          timestamp: timestamp || Date.now() // Store the current timestamp
         });
-        console.log("Button status saved:", { button_color: color, button_time: startTime });
+        console.log("Button status saved:", { button_color: color, button_time: startTime, timestamp });
       } catch (error) {
         console.error("Error saving button status:", error);
       }
@@ -160,16 +162,28 @@
         const docRef = doc(db, 'feeder', 'button_status');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const { button_color, button_time } = docSnap.data();
-          console.log("Loaded button status:", { button_color, button_time });
-          if (button_color === 'red' && button_time) {
+          const { button_color, button_time, timestamp } = docSnap.data();
+          console.log("Loaded button status:", { button_color, button_time, timestamp });
+
+          // Calculate how much time has passed since the last timestamp
+          const currentTime = Date.now();
+          const elapsedTimeSinceSave = Math.floor((currentTime - timestamp) / 1000); // Convert ms to seconds
+
+          // If the button was red (timer running)
+          if (button_color === 'red' && button_time !== null) {
+            // Calculate the new timer value based on the time that passed since the page was closed
+            const newTime = button_time + elapsedTimeSinceSave;
+
+            // Set the button to red and start the timer
             feederButton.classList.add('red');
-            timerStartTime = button_time * 1000; // Convert seconds to milliseconds
+            timerStartTime = Date.now() - (newTime * 1000); // Adjust timer to continue
             startTimer();
-          } else if (button_color === 'green' && button_time) {
+          } 
+          // If the button was green (timer stopped)
+          else if (button_color === 'green' && button_time !== null) {
             feederButton.classList.remove('red');
-            timerDisplay.style.display = 'block'; // Show saved time
-            timerDisplay.textContent = formatTime(button_time); // Show saved timer value
+            timerDisplay.style.display = 'block';
+            timerDisplay.textContent = formatTime(button_time);
           }
         }
       } catch (error) {
@@ -180,21 +194,21 @@
     const handleStart = async () => {
       feederButton.classList.add('red');
       startTimer();
-      await saveButtonStatus('red', lastTimerValue || 0); // Save start state
+      await saveButtonStatus('red', lastTimerValue || 0, Date.now()); // Save with current timestamp
     };
 
     const handleStop = async () => {
       clearInterval(timerInterval);
       feederButton.classList.remove('red');
-      timerDisplay.style.display = 'block'; // Show saved time
-      timerDisplay.textContent = formatTime(lastTimerValue); // Show last timer value
-      await saveButtonStatus('green', lastTimerValue); // Save last timer value
+      timerDisplay.style.display = 'block';
+      timerDisplay.textContent = formatTime(lastTimerValue);
+      await saveButtonStatus('green', lastTimerValue, Date.now()); // Save last timer value with timestamp
     };
 
     const handleReset = async () => {
       resetTimer();
       feederButton.classList.remove('red');
-      timerDisplay.style.display = 'none'; // Hide timer display
+      timerDisplay.style.display = 'none';
       await saveButtonStatus('green', null); // Save reset state
     };
 
