@@ -130,15 +130,15 @@
         const docRef = doc(db, 'feeder', 'button_status');
         const docSnap = await getDoc(docRef);
 
-        let previousColor2 = 0;
+        let previousButtonTime2 = 0;
         if (docSnap.exists()) {
           const data = docSnap.data();
-          previousColor2 = data.button_color2 || 0;
+          previousButtonTime2 = data.button_time2 || 0;
         }
 
         await setDoc(docRef, {
           button_color: feederButton.classList.contains('red') ? 'red' : 'green',
-          button_color2: feederButton.classList.contains('red') ? lastTimerValue : previousColor2,
+          button_time2: feederButton.classList.contains('red') ? lastTimerValue : previousButtonTime2,
           button_time: lastTimerValue // Store current time in seconds
         });
       } catch (error) {
@@ -156,7 +156,7 @@
       try {
         await setDoc(doc(db, 'feeder', 'button_status'), {
           button_color: color,
-          button_color2: color === 'red' ? lastTimerValue : 0,
+          button_time2: color === 'red' ? lastTimerValue : 0,
           button_time: startTime // Store time in seconds
         });
         console.log("Button status saved:", { button_color: color, button_time: startTime });
@@ -170,11 +170,11 @@
         const docRef = doc(db, 'feeder', 'button_status');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const { button_color, button_time, button_color2 } = docSnap.data();
-          console.log("Loaded button status:", { button_color, button_time, button_color2 });
+          const { button_color, button_time, button_time2 } = docSnap.data();
+          console.log("Loaded button status:", { button_color, button_time, button_time2 });
           if (button_color === 'red' && button_time != null) {
             feederButton.classList.add('red');
-            timerStartTime = Date.now() - (button_time - button_color2) * 1000; // Calculate start time from stored values
+            timerStartTime = Date.now() - ((button_time - button_time2) * 1000); // Calculate start time from stored values
             startTimer();
           } else if (button_color === 'green' && button_time != null) {
             feederButton.classList.remove('red');
@@ -225,4 +225,3 @@
 
 </body>
 </html>
-
