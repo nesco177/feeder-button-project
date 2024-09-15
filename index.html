@@ -103,7 +103,6 @@
     let timerInterval;
     let timerStartTime;
     let lastTimerValue;
-    let buttonTime2;
     let clickCount = 0;
 
     const feederButton = document.getElementById('feederButton');
@@ -113,7 +112,7 @@
     const resetButton = document.getElementById('resetButton');
 
     const startTimer = () => {
-      timerStartTime = Date.now() - (buttonTime2 * 1000 || 0);
+      timerStartTime = Date.now();
       timerInterval = setInterval(() => {
         updateTimer();
         updateFirestore();
@@ -131,8 +130,7 @@
       try {
         await setDoc(doc(db, 'feeder', 'button_status'), {
           button_color: feederButton.classList.contains('red') ? 'red' : 'green',
-          button_time: lastTimerValue, // Store current time in seconds
-          button_time2: buttonTime2 || lastTimerValue // Store continuous timer value
+          button_time: lastTimerValue // Store current time in seconds
         });
       } catch (error) {
         console.error("Error updating button status:", error);
@@ -143,17 +141,15 @@
       clearInterval(timerInterval);
       timerDisplay.style.display = 'none'; // Hide timer display
       timerDisplay.textContent = '';
-      buttonTime2 = lastTimerValue; // Save the running time before reset
     };
 
     const saveButtonStatus = async (color, startTime) => {
       try {
         await setDoc(doc(db, 'feeder', 'button_status'), {
           button_color: color,
-          button_time: startTime || lastTimerValue, // Save current timer value
-          button_time2: buttonTime2 || startTime // Save continuous timer value
+          button_time: startTime // Store time in seconds
         });
-        console.log("Button status saved:", { button_color: color, button_time: startTime, button_time2: buttonTime2 });
+        console.log("Button status saved:", { button_color: color, button_time: startTime });
       } catch (error) {
         console.error("Error saving button status:", error);
       }
@@ -164,21 +160,16 @@
         const docRef = doc(db, 'feeder', 'button_status');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const { button_color, button_time, button_time2 } = docSnap.data();
-          console.log("Loaded button status:", { button_color, button_time, button_time2 });
-          buttonTime2 = button_time2 || button_time; // Fallback to button_time if button_time2 is not available
+          const { button_color, button_time } = docSnap.data();
+          console.log("Loaded button status:", { button_color, button_time });
           if (button_color === 'red' && button_time) {
             feederButton.classList.add('red');
+            timerStartTime = button_time * 1000; // Convert seconds to milliseconds
             startTimer();
           } else if (button_color === 'green' && button_time) {
             feederButton.classList.remove('red');
             timerDisplay.style.display = 'block'; // Show saved time
             timerDisplay.textContent = formatTime(button_time); // Show saved timer value
-          }
-          // If button_color is red but timer was previously stopped, start from button_time2
-          if (button_color === 'red' && button_time2) {
-            timerStartTime = Date.now() - (buttonTime2 * 1000); // Adjust start time based on button_time2
-            startTimer();
           }
         }
       } catch (error) {
@@ -197,7 +188,6 @@
       feederButton.classList.remove('red');
       timerDisplay.style.display = 'block'; // Show saved time
       timerDisplay.textContent = formatTime(lastTimerValue); // Show last timer value
-      buttonTime2 = lastTimerValue; // Save the running time when stopping
       await saveButtonStatus('green', lastTimerValue); // Save last timer value
     };
 
@@ -222,7 +212,6 @@
     // Load the button status on page load
     loadButtonStatus();
 </script>
-
 
 </body>
 </html>
