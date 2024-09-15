@@ -6,67 +6,67 @@
     <title>Feeder Button</title>
     <style>
         body {
-          display: flex;
-          flex-direction: column; /* Stack elements vertically */
-          justify-content: center; /* Center horizontally */
-          align-items: center; /* Center vertically */
-          height: 100vh; /* Full viewport height */
-          margin: 0; /* Remove default margin */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
 
         .feeder-button {
-          display: flex;
-          align-items: center; /* Align text and timer vertically */
-          justify-content: center; /* Center text and timer horizontally */
-          width: 200px; /* Fixed width to prevent expansion */
-          height: 50px; /* Fixed height to prevent expansion */
-          padding: 10px;
-          background-color: green;
-          color: white;
-          border: 2px solid black;
-          cursor: pointer;
-          text-align: center;
-          line-height: 30px; /* Center text vertically */
-          transition: background-color 0.3s ease;
-          user-select: none; /* Prevent text selection */
-          position: relative;
-          overflow: hidden; /* Ensure timer is visible without expanding button */
-          font-size: 1em; /* Adjust font size for readability */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            height: 50px;
+            padding: 10px;
+            background-color: green;
+            color: white;
+            border: 2px solid black;
+            cursor: pointer;
+            text-align: center;
+            line-height: 30px;
+            transition: background-color 0.3s ease;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+            font-size: 1em;
         }
 
         .feeder-button:hover {
-          background-color: darkgreen;
+            background-color: darkgreen;
         }
 
         .feeder-button.red {
-          background-color: red;
+            background-color: red;
         }
 
         .timer {
-          color: white;
-          font-weight: bold;
-          margin-left: 10px; /* Space between button text and timer */
-          font-size: 1em; /* Adjust font size */
+            color: white;
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 1em;
         }
 
         .control-buttons {
-          display: flex;
-          gap: 20px; /* Space between buttons */
-          margin-top: 20px; /* Space above control buttons */
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
         }
 
         .control-button {
-          padding: 10px;
-          border: 1px solid black;
-          background-color: lightgray;
-          color: black;
-          cursor: pointer;
-          font-size: 1em;
-          user-select: none;
+            padding: 10px;
+            border: 1px solid black;
+            background-color: lightgray;
+            color: black;
+            cursor: pointer;
+            font-size: 1em;
+            user-select: none;
         }
 
         .control-button:hover {
-          background-color: gray;
+            background-color: gray;
         }
     </style>
 </head>
@@ -88,12 +88,12 @@
 
     // Firebase configuration (replace with your own config)
     const firebaseConfig = {
-      apiKey: "AIzaSyAy53-F5QZ5a0f9DW9emesit1KA2T7v7Do",
-      authDomain: "testt-b241d.firebaseapp.com",
-      projectId: "testt-b241d",
-      storageBucket: "testt-b241d.appspot.com",
-      messagingSenderId: "288476078303",
-      appId: "1:288476078303:android:ff06d4a9d5c432f41ac96a"
+        apiKey: "AIzaSyAy53-F5QZ5a0f9DW9emesit1KA2T7v7Do",
+        authDomain: "testt-b241d.firebaseapp.com",
+        projectId: "testt-b241d",
+        storageBucket: "testt-b241d.appspot.com",
+        messagingSenderId: "288476078303",
+        appId: "1:288476078303:android:ff06d4a9d5c432f41ac96a"
     };
 
     // Initialize Firebase
@@ -102,8 +102,7 @@
 
     let timerInterval;
     let timerStartTime;
-    let lastTimerValue;
-    let clickCount = 0;
+    let lastTimerValue = 0;
 
     const feederButton = document.getElementById('feederButton');
     const timerDisplay = document.getElementById('timerDisplay');
@@ -111,98 +110,95 @@
     const stopButton = document.getElementById('stopButton');
     const resetButton = document.getElementById('resetButton');
 
+    // Start the timer and save the current timestamp in Firestore
     const startTimer = () => {
-      timerStartTime = Date.now();
-      timerInterval = setInterval(() => {
-        updateTimer();
-        updateFirestore();
-      }, 100); // Update every 100 milliseconds
-      timerDisplay.style.display = 'block'; // Show timer display
+        timerStartTime = Date.now();
+        timerInterval = setInterval(() => {
+            updateTimer();
+        }, 1000); // Update every second
+        timerDisplay.style.display = 'block';
     };
 
+    // Update the timer display
     const updateTimer = () => {
-      const elapsedSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
-      lastTimerValue = elapsedSeconds; // Update the last timer value
-      timerDisplay.textContent = formatTime(elapsedSeconds);
+        const elapsedSeconds = Math.floor((Date.now() - timerStartTime) / 1000) + lastTimerValue;
+        timerDisplay.textContent = formatTime(elapsedSeconds);
     };
 
-    const updateFirestore = async () => {
-      try {
-        await setDoc(doc(db, 'feeder', 'button_status'), {
-          button_color: feederButton.classList.contains('red') ? 'red' : 'green',
-          button_time: lastTimerValue // Store current time in seconds
-        });
-      } catch (error) {
-        console.error("Error updating button status:", error);
-      }
-    };
-
-    const resetTimer = () => {
-      clearInterval(timerInterval);
-      timerDisplay.style.display = 'none'; // Hide timer display
-      timerDisplay.textContent = '';
-    };
-
+    // Save the current button status and the start time to Firestore
     const saveButtonStatus = async (color, startTime) => {
-      try {
-        await setDoc(doc(db, 'feeder', 'button_status'), {
-          button_color: color,
-          button_time: startTime // Store time in seconds
-        });
-        console.log("Button status saved:", { button_color: color, button_time: startTime });
-      } catch (error) {
-        console.error("Error saving button status:", error);
-      }
-    };
-
-    const loadButtonStatus = async () => {
-      try {
-        const docRef = doc(db, 'feeder', 'button_status');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const { button_color, button_time } = docSnap.data();
-          console.log("Loaded button status:", { button_color, button_time });
-          if (button_color === 'red' && button_time) {
-            feederButton.classList.add('red');
-            timerStartTime = button_time * 1000; // Convert seconds to milliseconds
-            startTimer();
-          } else if (button_color === 'green' && button_time) {
-            feederButton.classList.remove('red');
-            timerDisplay.style.display = 'block'; // Show saved time
-            timerDisplay.textContent = formatTime(button_time); // Show saved timer value
-          }
+        try {
+            await setDoc(doc(db, 'feeder', 'button_status'), {
+                button_color: color,
+                start_time: startTime, // Store start time in milliseconds
+                last_timer_value: lastTimerValue // Save the accumulated time
+            });
+        } catch (error) {
+            console.error("Error saving button status:", error);
         }
-      } catch (error) {
-        console.error("Error loading button status:", error);
-      }
     };
 
-    const handleStart = async () => {
-      feederButton.classList.add('red');
-      startTimer();
-      await saveButtonStatus('red', lastTimerValue || 0); // Save start state
+    // Load the button state and calculate elapsed time if necessary
+    const loadButtonStatus = async () => {
+        try {
+            const docRef = doc(db, 'feeder', 'button_status');
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const { button_color, start_time, last_timer_value } = docSnap.data();
+                lastTimerValue = last_timer_value || 0;
+
+                if (button_color === 'red') {
+                    const currentTime = Date.now();
+                    const elapsedTime = Math.floor((currentTime - start_time) / 1000) + lastTimerValue;
+                    feederButton.classList.add('red');
+                    timerStartTime = currentTime - (elapsedTime - lastTimerValue) * 1000; // Adjust timer start time
+                    startTimer(); // Continue the timer
+                    timerDisplay.textContent = formatTime(elapsedTime);
+                } else if (button_color === 'green') {
+                    feederButton.classList.remove('red');
+                    timerDisplay.textContent = formatTime(lastTimerValue);
+                    timerDisplay.style.display = 'block'; // Show stopped timer
+                }
+            }
+        } catch (error) {
+            console.error("Error loading button status:", error);
+        }
     };
 
-    const handleStop = async () => {
-      clearInterval(timerInterval);
-      feederButton.classList.remove('red');
-      timerDisplay.style.display = 'block'; // Show saved time
-      timerDisplay.textContent = formatTime(lastTimerValue); // Show last timer value
-      await saveButtonStatus('green', lastTimerValue); // Save last timer value
-    };
-
-    const handleReset = async () => {
-      resetTimer();
-      feederButton.classList.remove('red');
-      timerDisplay.style.display = 'none'; // Hide timer display
-      await saveButtonStatus('green', null); // Save reset state
-    };
-
+    // Format seconds into HH:MM:SS
     const formatTime = (seconds) => {
-      const hours = Math.floor(seconds / 3600).toString().padStart(2, '0');
-      const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-      const sec = (seconds % 60).toString().padStart(2, '0');
-      return `${hours}:${minutes}:${sec}`;
+        const hours = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const sec = (seconds % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}:${sec}`;
+    };
+
+    // Start button click handler
+    const handleStart = async () => {
+        feederButton.classList.add('red');
+        const currentTime = Date.now();
+        timerStartTime = currentTime;
+        lastTimerValue = 0; // Reset the previous timer value
+        startTimer();
+        await saveButtonStatus('red', currentTime); // Save the start time
+    };
+
+    // Stop button click handler
+    const handleStop = async () => {
+        clearInterval(timerInterval);
+        feederButton.classList.remove('red');
+        lastTimerValue += Math.floor((Date.now() - timerStartTime) / 1000); // Update the total time on stop
+        timerDisplay.textContent = formatTime(lastTimerValue); // Show the stopped timer
+        await saveButtonStatus('green', null); // Save the stopped state with accumulated time
+    };
+
+    // Reset button click handler
+    const handleReset = async () => {
+        clearInterval(timerInterval);
+        timerDisplay.style.display = 'none';
+        feederButton.classList.remove('red');
+        lastTimerValue = 0; // Reset the timer
+        await saveButtonStatus('green', null); // Save reset state
     };
 
     startButton.addEventListener('click', handleStart);
