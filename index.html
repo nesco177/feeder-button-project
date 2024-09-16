@@ -7,35 +7,39 @@
     <style>
         body {
           display: flex;
-          flex-direction: column; /* Stack elements vertically */
-          justify-content: center; /* Center horizontally */
-          align-items: center; /* Center vertically */
-          height: 100vh; /* Full viewport height */
-          margin: 0; /* Remove default margin */
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+        }
+
+        .feeder-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 30px;
         }
 
         .feeder-button {
           display: flex;
-          align-items: center; /* Align text and timer vertically */
-          justify-content: center; /* Center text and timer horizontally */
-          width: 200px; /* Fixed width to prevent expansion */
-          height: 50px; /* Fixed height to prevent expansion */
+          align-items: center;
+          justify-content: center;
+          width: 150px;
+          height: 50px;
           padding: 10px;
           background-color: green;
           color: white;
           border: 2px solid black;
           cursor: pointer;
           text-align: center;
-          line-height: 30px; /* Center text vertically */
+          line-height: 30px;
           transition: background-color 0.3s ease;
-          user-select: none; /* Prevent text selection */
+          user-select: none;
           position: relative;
-          overflow: hidden; /* Ensure timer is visible without expanding button */
-          font-size: 1em; /* Adjust font size for readability */
-        }
-
-        .feeder-button:hover {
-          background-color: darkgreen;
+          overflow: hidden;
+          font-size: 1em;
+          margin-bottom: 10px;
         }
 
         .feeder-button.red {
@@ -44,8 +48,8 @@
 
         .control-buttons {
           display: flex;
-          gap: 20px; /* Space between buttons */
-          margin-top: 10px; /* Space above control buttons */
+          gap: 10px;
+          justify-content: center;
         }
 
         .control-button {
@@ -65,11 +69,31 @@
 </head>
 <body>
 
-<button id="feederButton" class="feeder-button">Town Feeder</button>
+<!-- Town Feeder Button with On/Off Controls -->
+<div class="feeder-container">
+    <button id="feederButton" class="feeder-button">Town</button>
+    <div class="control-buttons">
+        <button id="feederOnButton" class="control-button">On</button>
+        <button id="feederOffButton" class="control-button">Off</button>
+    </div>
+</div>
 
-<div class="control-buttons">
-    <button id="onButton" class="control-button">On</button>
-    <button id="offButton" class="control-button">Off</button>
+<!-- Sultanabaad Button with On/Off Controls -->
+<div class="feeder-container">
+    <button id="sultanabaadButton" class="feeder-button">Sultanabaad</button>
+    <div class="control-buttons">
+        <button id="sultanabaadOnButton" class="control-button">On</button>
+        <button id="sultanabaadOffButton" class="control-button">Off</button>
+    </div>
+</div>
+
+<!-- New Market Button with On/Off Controls -->
+<div class="feeder-container">
+    <button id="newMarketButton" class="feeder-button">New Market</button>
+    <div class="control-buttons">
+        <button id="newMarketOnButton" class="control-button">On</button>
+        <button id="newMarketOffButton" class="control-button">Off</button>
+    </div>
 </div>
 
 <script type="module">
@@ -90,54 +114,87 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const feederButton = document.getElementById('feederButton');
-    const onButton = document.getElementById('onButton');
-    const offButton = document.getElementById('offButton');
-
-    const saveButtonStatus = async (color) => {
+    // Function to handle saving button statuses to Firestore
+    const saveButtonStatus = async (field, color) => {
       try {
         await setDoc(doc(db, 'feeder', 'button_status'), {
-          button_color: color
-        });
-        console.log("Button status saved:", { button_color: color });
+          [field]: color
+        }, { merge: true }); // Merge with existing data
+        console.log(`Button status saved for ${field}:`, { button_color: color });
       } catch (error) {
-        console.error("Error saving button status:", error);
+        console.error(`Error saving button status for ${field}:`, error);
       }
     };
 
-    const loadButtonStatus = async () => {
+    // Function to handle loading button statuses from Firestore
+    const loadButtonStatus = async (buttonElement, field) => {
       try {
         const docRef = doc(db, 'feeder', 'button_status');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const { button_color } = docSnap.data();
-          console.log("Loaded button status:", { button_color });
-          if (button_color === 'red') {
-            feederButton.classList.add('red');
+          const data = docSnap.data();
+          const buttonColor = data[field];
+          console.log(`Loaded button status for ${field}:`, { button_color: buttonColor });
+          if (buttonColor === 'red') {
+            buttonElement.classList.add('red');
           } else {
-            feederButton.classList.remove('red');
+            buttonElement.classList.remove('red');
           }
         }
       } catch (error) {
-        console.error("Error loading button status:", error);
+        console.error(`Error loading button status for ${field}:`, error);
       }
     };
 
-    const handleOn = async () => {
-      feederButton.classList.remove('red'); // Indicating "Off" state
-      await saveButtonStatus('green'); // Save green status
-    };
+    // Town Feeder Button Event Listeners
+    const feederButton = document.getElementById('feederButton');
+    const feederOnButton = document.getElementById('feederOnButton');
+    const feederOffButton = document.getElementById('feederOffButton');
 
-    const handleOff = async () => {
-      feederButton.classList.add('red'); // Indicating "On" state
-      await saveButtonStatus('red'); // Save red status
-    };
+    feederOnButton.addEventListener('click', async () => {
+      feederButton.classList.remove('red');
+      await saveButtonStatus('button_color', 'green');
+    });
 
-    onButton.addEventListener('click', handleOn);
-    offButton.addEventListener('click', handleOff);
+    feederOffButton.addEventListener('click', async () => {
+      feederButton.classList.add('red');
+      await saveButtonStatus('button_color', 'red');
+    });
 
-    // Load the button status on page load
-    loadButtonStatus();
+    // Sultanabaad Button Event Listeners
+    const sultanabaadButton = document.getElementById('sultanabaadButton');
+    const sultanabaadOnButton = document.getElementById('sultanabaadOnButton');
+    const sultanabaadOffButton = document.getElementById('sultanabaadOffButton');
+
+    sultanabaadOnButton.addEventListener('click', async () => {
+      sultanabaadButton.classList.remove('red');
+      await saveButtonStatus('button_color1', 'green');
+    });
+
+    sultanabaadOffButton.addEventListener('click', async () => {
+      sultanabaadButton.classList.add('red');
+      await saveButtonStatus('button_color1', 'red');
+    });
+
+    // New Market Button Event Listeners
+    const newMarketButton = document.getElementById('newMarketButton');
+    const newMarketOnButton = document.getElementById('newMarketOnButton');
+    const newMarketOffButton = document.getElementById('newMarketOffButton');
+
+    newMarketOnButton.addEventListener('click', async () => {
+      newMarketButton.classList.remove('red');
+      await saveButtonStatus('button_color2', 'green');
+    });
+
+    newMarketOffButton.addEventListener('click', async () => {
+      newMarketButton.classList.add('red');
+      await saveButtonStatus('button_color2', 'red');
+    });
+
+    // Load the button statuses on page load
+    loadButtonStatus(feederButton, 'button_color');
+    loadButtonStatus(sultanabaadButton, 'button_color1');
+    loadButtonStatus(newMarketButton, 'button_color2');
 </script>
 
 </body>
