@@ -14,6 +14,10 @@
           margin: 0;
         }
 
+        .main-container {
+          margin-top: 50px; /* Adds margin at the top of the content */
+        }
+
         .feeder-container {
           display: flex;
           flex-direction: column;
@@ -25,7 +29,7 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 150px;
+          width: 200px;
           height: 50px;
           padding: 10px;
           background-color: green;
@@ -69,31 +73,35 @@
 </head>
 <body>
 
-<!-- Town Feeder Button with On/Off Controls -->
-<div class="feeder-container">
-    <button id="feederButton" class="feeder-button">Town</button>
-    <div class="control-buttons">
-        <button id="feederOnButton" class="control-button">On</button>
-        <button id="feederOffButton" class="control-button">Off</button>
-    </div>
-</div>
+<div class="main-container">
 
-<!-- Sultanabaad Button with On/Off Controls -->
-<div class="feeder-container">
-    <button id="sultanabaadButton" class="feeder-button">Sultanabaad</button>
-    <div class="control-buttons">
-        <button id="sultanabaadOnButton" class="control-button">On</button>
-        <button id="sultanabaadOffButton" class="control-button">Off</button>
+    <!-- Town Feeder Button with On/Off Controls -->
+    <div class="feeder-container">
+        <button id="feederButton" class="feeder-button">Town Feeder</button>
+        <div class="control-buttons">
+            <button id="feederOnButton" class="control-button">On</button>
+            <button id="feederOffButton" class="control-button">Off</button>
+        </div>
     </div>
-</div>
 
-<!-- New Market Button with On/Off Controls -->
-<div class="feeder-container">
-    <button id="newMarketButton" class="feeder-button">New Market</button>
-    <div class="control-buttons">
-        <button id="newMarketOnButton" class="control-button">On</button>
-        <button id="newMarketOffButton" class="control-button">Off</button>
+    <!-- Sultanabaad Button with On/Off Controls -->
+    <div class="feeder-container">
+        <button id="sultanabaadButton" class="feeder-button">Sultanabaad</button>
+        <div class="control-buttons">
+            <button id="sultanabaadOnButton" class="control-button">On</button>
+            <button id="sultanabaadOffButton" class="control-button">Off</button>
+        </div>
     </div>
+
+    <!-- New Market Button with On/Off Controls -->
+    <div class="feeder-container">
+        <button id="newMarketButton" class="feeder-button">New Market</button>
+        <div class="control-buttons">
+            <button id="newMarketOnButton" class="control-button">On</button>
+            <button id="newMarketOffButton" class="control-button">Off</button>
+        </div>
+    </div>
+
 </div>
 
 <script type="module">
