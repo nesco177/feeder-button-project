@@ -176,22 +176,37 @@
     };
 
     // Function to handle loading button statuses from Firestore
-    const loadButtonStatus = async (buttonElement, field) => {
+    const loadButtonStatus = async (buttonElement, colorField, timeField) => {
       try {
         const docRef = doc(db, 'feeder', 'button_status');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          const buttonColor = data[field];
-          console.log(`Loaded button status for ${field}:`, { button_color: buttonColor });
+          const buttonColor = data[colorField];
+          const buttonTime = data[timeField];
+
+          console.log(`Firestore data:`, data); // Log the entire data object
+
+          // Set the button color
           if (buttonColor === 'red') {
             buttonElement.classList.add('red');
           } else {
             buttonElement.classList.remove('red');
           }
+
+          // Set the button text
+          let buttonText = buttonElement.textContent.split(' ')[0]; // Base text (e.g., "Town")
+          if (buttonColor === 'red' && buttonTime) {
+            buttonText += ` ${buttonTime}`;
+          }
+          buttonElement.textContent = buttonText;
+
+          console.log(`Loaded button status for ${colorField}:`, { button_color: buttonColor, button_time: buttonTime });
+        } else {
+          console.log(`No document found for ${colorField}`);
         }
       } catch (error) {
-        console.error(`Error loading button status for ${field}:`, error);
+        console.error(`Error loading button status for ${colorField}:`, error);
       }
     };
 
@@ -248,7 +263,7 @@
       const offButtonElement = document.getElementById(off);
 
       addEventListeners(buttonElement, onButtonElement, offButtonElement, colorField, timeField);
-      loadButtonStatus(buttonElement, colorField);
+      loadButtonStatus(buttonElement, colorField, timeField);
     });
 </script>
 
