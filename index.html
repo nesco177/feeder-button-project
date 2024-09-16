@@ -42,7 +42,7 @@
           user-select: none;
           position: relative;
           overflow: hidden;
-          font-size: 1em;
+          font-size: 0.95em;
           margin-bottom: 10px;
         }
 
@@ -142,7 +142,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore.js";
 
     // Firebase configuration (replace with your own config)
     const firebaseConfig = {
@@ -157,6 +157,9 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // Object to store the initial text of each button
+    const initialButtonTexts = {};
 
     // Function to handle saving button statuses and time to Firestore
     const saveButtonStatus = async (field, color, timeField = null, time = null) => {
@@ -194,10 +197,10 @@
             buttonElement.classList.remove('red');
           }
 
-          // Set the button text
-          let buttonText = buttonElement.textContent.split(' ')[0]; // Base text (e.g., "Town")
+          // Preserve the full button text
+          let buttonText = initialButtonTexts[buttonElement.id];
           if (buttonColor === 'red' && buttonTime) {
-            buttonText += ` ${buttonTime}`;
+            buttonText = `${buttonText} ${buttonTime}`;
           }
           buttonElement.textContent = buttonText;
 
@@ -224,7 +227,7 @@
     const addEventListeners = (button, onButton, offButton, colorField, timeField = null) => {
       onButton.addEventListener('click', async () => {
         button.classList.remove('red');
-        button.textContent = button.textContent.split(' ')[0]; // Reset to default button text (e.g., "Town")
+        button.textContent = initialButtonTexts[button.id]; // Reset to default button text
         await saveButtonStatus(colorField, 'green');
       });
 
@@ -235,8 +238,9 @@
           // Get current time in 12-hour format
           const currentTime = formatTime12Hour(new Date());
           
-          // Display the time after the button text
-          button.textContent = `${button.textContent.split(' ')[0]} ${currentTime}`;
+          // Preserve the initial text and add the time
+          const baseText = initialButtonTexts[button.id];
+          button.textContent = `${baseText} ${currentTime}`;
 
           // Save button status and time to Firestore
           await saveButtonStatus(colorField, 'red', timeField, currentTime);
@@ -261,6 +265,9 @@
       const buttonElement = document.getElementById(button);
       const onButtonElement = document.getElementById(on);
       const offButtonElement = document.getElementById(off);
+
+      // Store initial text
+      initialButtonTexts[button] = buttonElement.textContent;
 
       addEventListeners(buttonElement, onButtonElement, offButtonElement, colorField, timeField);
       loadButtonStatus(buttonElement, colorField, timeField);
