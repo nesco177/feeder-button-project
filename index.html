@@ -158,13 +158,18 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Function to handle saving button statuses to Firestore
-    const saveButtonStatus = async (field, color) => {
+    // Function to handle saving button statuses and time to Firestore
+    const saveButtonStatus = async (field, color, timeField = null, time = null) => {
+      let data = { [field]: color };
+      if (timeField && time) {
+        data[timeField] = time;
+      }
       try {
-        await setDoc(doc(db, 'feeder', 'button_status'), {
-          [field]: color
-        }, { merge: true }); // Merge with existing data
+        await setDoc(doc(db, 'feeder', 'button_status'), data, { merge: true });
         console.log(`Button status saved for ${field}:`, { button_color: color });
+        if (timeField) {
+          console.log(`Time saved for ${timeField}:`, { button_time: time });
+        }
       } catch (error) {
         console.error(`Error saving button status for ${field}:`, error);
       }
@@ -190,38 +195,62 @@
       }
     };
 
+    // Function to format time to 12-hour format with AM/PM
+    const formatTime12Hour = (date) => {
+      let hours = date.getHours();
+      const minutes = date.getMinutes();
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12; // Convert to 12-hour format
+      const minutesStr = minutes < 10 ? '0' + minutes : minutes; // Ensure two-digit minutes
+      return `${hours}:${minutesStr} ${ampm}`;
+    };
+
     // Function to add event listeners to buttons
-    const addEventListeners = (button, onButton, offButton, colorField) => {
+    const addEventListeners = (button, onButton, offButton, colorField, timeField = null) => {
       onButton.addEventListener('click', async () => {
         button.classList.remove('red');
+        button.textContent = button.textContent.split(' ')[0]; // Reset to default button text (e.g., "Town")
         await saveButtonStatus(colorField, 'green');
       });
 
       offButton.addEventListener('click', async () => {
         button.classList.add('red');
-        await saveButtonStatus(colorField, 'red');
+
+        if (timeField) {
+          // Get current time in 12-hour format
+          const currentTime = formatTime12Hour(new Date());
+          
+          // Display the time after the button text
+          button.textContent = `${button.textContent.split(' ')[0]} ${currentTime}`;
+
+          // Save button status and time to Firestore
+          await saveButtonStatus(colorField, 'red', timeField, currentTime);
+        } else {
+          await saveButtonStatus(colorField, 'red');
+        }
       });
     };
 
     // Assign event listeners and load button statuses for each button
     const buttonsConfig = [
-      { button: 'feederButton', on: 'feederOnButton', off: 'feederOffButton', colorField: 'button_color' },
-      { button: 'sultanabaadButton', on: 'sultanabaadOnButton', off: 'sultanabaadOffButton', colorField: 'button_color1' },
-      { button: 'newMarketButton', on: 'newMarketOnButton', off: 'newMarketOffButton', colorField: 'button_color2' },
-      { button: 'buttonA', on: 'buttonAOn', off: 'buttonAOff', colorField: 'button_color3' },
-      { button: 'buttonB', on: 'buttonBOn', off: 'buttonBOff', colorField: 'button_color4' },
-      { button: 'buttonC', on: 'buttonCOn', off: 'buttonCOff', colorField: 'button_color5' },
-      { button: 'buttonD', on: 'buttonDOn', off: 'buttonDOff', colorField: 'button_color6' },
+      { button: 'feederButton', on: 'feederOnButton', off: 'feederOffButton', colorField: 'button_color', timeField: 'button_time' },
+      { button: 'sultanabaadButton', on: 'sultanabaadOnButton', off: 'sultanabaadOffButton', colorField: 'button_color1', timeField: 'button_time1' },
+      { button: 'newMarketButton', on: 'newMarketOnButton', off: 'newMarketOffButton', colorField: 'button_color2', timeField: 'button_time2' },
+      { button: 'buttonA', on: 'buttonAOn', off: 'buttonAOff', colorField: 'button_color3', timeField: 'button_time3' },
+      { button: 'buttonB', on: 'buttonBOn', off: 'buttonBOff', colorField: 'button_color4', timeField: 'button_time4' },
+      { button: 'buttonC', on: 'buttonCOn', off: 'buttonCOff', colorField: 'button_color5', timeField: 'button_time5' },
+      { button: 'buttonD', on: 'buttonDOn', off: 'buttonDOff', colorField: 'button_color6', timeField: 'button_time6' },
     ];
 
-    buttonsConfig.forEach(({ button, on, off, colorField }) => {
+    buttonsConfig.forEach(({ button, on, off, colorField, timeField }) => {
       const buttonElement = document.getElementById(button);
       const onButtonElement = document.getElementById(on);
       const offButtonElement = document.getElementById(off);
 
-      addEventListeners(buttonElement, onButtonElement, offButtonElement, colorField);
+      addEventListeners(buttonElement, onButtonElement, offButtonElement, colorField, timeField);
       loadButtonStatus(buttonElement, colorField);
     });
 </script>
 
 </body>
+</html>
