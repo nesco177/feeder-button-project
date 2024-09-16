@@ -15,7 +15,7 @@
         }
 
         .main-container {
-          margin-top: 0px; /* Adds margin at the top of the content */
+          margin-top: 400px; /* Adds margin at the top of the content */
         }
 
         .feeder-container {
@@ -102,6 +102,42 @@
         </div>
     </div>
 
+    <!-- Nogor Vobon Button with On/Off Controls -->
+    <div class="feeder-container">
+        <button id="buttonA" class="feeder-button">Nogor Vobon</button>
+        <div class="control-buttons">
+            <button id="buttonAOn" class="control-button">On</button>
+            <button id="buttonAOff" class="control-button">Off</button>
+        </div>
+    </div>
+
+    <!-- Greater Road Button with On/Off Controls -->
+    <div class="feeder-container">
+        <button id="buttonB" class="feeder-button">Greater Road</button>
+        <div class="control-buttons">
+            <button id="buttonBOn" class="control-button">On</button>
+            <button id="buttonBOff" class="control-button">Off</button>
+        </div>
+    </div>
+
+    <!-- Omar Plaza Button with On/Off Controls -->
+    <div class="feeder-container">
+        <button id="buttonC" class="feeder-button">Omar Plaza</button>
+        <div class="control-buttons">
+            <button id="buttonCOn" class="control-button">On</button>
+            <button id="buttonCOff" class="control-button">Off</button>
+        </div>
+    </div>
+
+    <!-- Data Center Button with On/Off Controls -->
+    <div class="feeder-container">
+        <button id="buttonD" class="feeder-button">Data Center</button>
+        <div class="control-buttons">
+            <button id="buttonDOn" class="control-button">On</button>
+            <button id="buttonDOff" class="control-button">Off</button>
+        </div>
+    </div>
+
 </div>
 
 <script type="module">
@@ -154,56 +190,38 @@
       }
     };
 
-    // Town Feeder Button Event Listeners
-    const feederButton = document.getElementById('feederButton');
-    const feederOnButton = document.getElementById('feederOnButton');
-    const feederOffButton = document.getElementById('feederOffButton');
+    // Function to add event listeners to buttons
+    const addEventListeners = (button, onButton, offButton, colorField) => {
+      onButton.addEventListener('click', async () => {
+        button.classList.remove('red');
+        await saveButtonStatus(colorField, 'green');
+      });
 
-    feederOnButton.addEventListener('click', async () => {
-      feederButton.classList.remove('red');
-      await saveButtonStatus('button_color', 'green');
+      offButton.addEventListener('click', async () => {
+        button.classList.add('red');
+        await saveButtonStatus(colorField, 'red');
+      });
+    };
+
+    // Assign event listeners and load button statuses for each button
+    const buttonsConfig = [
+      { button: 'feederButton', on: 'feederOnButton', off: 'feederOffButton', colorField: 'button_color' },
+      { button: 'sultanabaadButton', on: 'sultanabaadOnButton', off: 'sultanabaadOffButton', colorField: 'button_color1' },
+      { button: 'newMarketButton', on: 'newMarketOnButton', off: 'newMarketOffButton', colorField: 'button_color2' },
+      { button: 'buttonA', on: 'buttonAOn', off: 'buttonAOff', colorField: 'button_color3' },
+      { button: 'buttonB', on: 'buttonBOn', off: 'buttonBOff', colorField: 'button_color4' },
+      { button: 'buttonC', on: 'buttonCOn', off: 'buttonCOff', colorField: 'button_color5' },
+      { button: 'buttonD', on: 'buttonDOn', off: 'buttonDOff', colorField: 'button_color6' },
+    ];
+
+    buttonsConfig.forEach(({ button, on, off, colorField }) => {
+      const buttonElement = document.getElementById(button);
+      const onButtonElement = document.getElementById(on);
+      const offButtonElement = document.getElementById(off);
+
+      addEventListeners(buttonElement, onButtonElement, offButtonElement, colorField);
+      loadButtonStatus(buttonElement, colorField);
     });
-
-    feederOffButton.addEventListener('click', async () => {
-      feederButton.classList.add('red');
-      await saveButtonStatus('button_color', 'red');
-    });
-
-    // Sultanabaad Button Event Listeners
-    const sultanabaadButton = document.getElementById('sultanabaadButton');
-    const sultanabaadOnButton = document.getElementById('sultanabaadOnButton');
-    const sultanabaadOffButton = document.getElementById('sultanabaadOffButton');
-
-    sultanabaadOnButton.addEventListener('click', async () => {
-      sultanabaadButton.classList.remove('red');
-      await saveButtonStatus('button_color1', 'green');
-    });
-
-    sultanabaadOffButton.addEventListener('click', async () => {
-      sultanabaadButton.classList.add('red');
-      await saveButtonStatus('button_color1', 'red');
-    });
-
-    // New Market Button Event Listeners
-    const newMarketButton = document.getElementById('newMarketButton');
-    const newMarketOnButton = document.getElementById('newMarketOnButton');
-    const newMarketOffButton = document.getElementById('newMarketOffButton');
-
-    newMarketOnButton.addEventListener('click', async () => {
-      newMarketButton.classList.remove('red');
-      await saveButtonStatus('button_color2', 'green');
-    });
-
-    newMarketOffButton.addEventListener('click', async () => {
-      newMarketButton.classList.add('red');
-      await saveButtonStatus('button_color2', 'red');
-    });
-
-    // Load the button statuses on page load
-    loadButtonStatus(feederButton, 'button_color');
-    loadButtonStatus(sultanabaadButton, 'button_color1');
-    loadButtonStatus(newMarketButton, 'button_color2');
 </script>
 
 </body>
-</html>
